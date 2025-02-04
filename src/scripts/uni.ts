@@ -5,6 +5,7 @@ let examPeriods: { start: Date; end: Date }[] = [
   { start: new Date(2023, 11, 18), end: new Date(2024, 1, 3) },
   { start: new Date(2024, 4, 20), end: new Date(2024, 5, 29) },
   { start: new Date(2024, 11, 16), end: new Date(2025, 1, 8) },
+  { start: new Date(2025, 4, 26), end: new Date(2025, 6, 5) }
 ];
 
 let studyPeriods : { start: Date; end: Date}[] = [
@@ -12,6 +13,7 @@ let studyPeriods : { start: Date; end: Date}[] = [
   { start: new Date(2023, 8, 11), end: new Date(2023, 11, 16) },
   { start: new Date(2024, 1, 12), end: new Date(2024, 4, 18) },
   { start: new Date(2024, 8, 9), end: new Date(2024, 11, 14) },
+  { start: new Date(2025, 1, 17), end: new Date(2025, 4, 24) }
 ];
 
 let currentDate = new Date();
