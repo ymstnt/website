@@ -1,12 +1,28 @@
 let generatedLink: string;
 let pressedButton: string;
+let dateTime = new Date();
 
+function fillFormWithYears() {
+  let currentYear = dateTime.getUTCFullYear();
+  if (!checkAvailableMonths().spring) {
+    currentYear = currentYear - 1;
+  }
+  
+  let yearSelector = <HTMLSelectElement>document.querySelector("#year");
+  for (let i = currentYear; i >= 2005; i--) {
+    yearSelector.add(new Option(i.toString(), i.toString()));
+  }
+}
+
+fillFormWithYears();
 formUpdate();
 
 //Érettségi link generator
 function formUpdate() {
   console.log("Form updated");
+
   let year = (<HTMLInputElement>document.querySelector("#year")).value;
+
   let period = (<HTMLInputElement>document.querySelector("#period")).value;
   let generatedDifficulty = (<HTMLInputElement>document.querySelector("#difficulty"))
     .value;
@@ -26,7 +42,8 @@ function formUpdate() {
     periodMonth = "okt";
   }
 
-  if (subject == "inf" || subject == "infoism") {
+  // Enable and disable source and solution files if appropriate subjects are selected
+  if (subject == "inf" || subject == "infoism" || subject == "digkult") {
     (<HTMLInputElement>document.querySelector("#sourcefiles")).disabled = false;
     (<HTMLInputElement>document.querySelector("#solutionfiles")).disabled =
       false;
@@ -38,30 +55,41 @@ function formUpdate() {
 
   let convertedYear: number = parseInt(year);
 
-  //Hide október-november if 2023 is selected using .hidden class
-  if (convertedYear == 2024 && period == "oktober") {
-    (<HTMLInputElement>document.querySelector("#oktober")).classList.add("hidden");
+  //Hide október-november if latest year is selected using .hidden class
+  if (convertedYear == dateTime.getUTCFullYear() && !checkAvailableMonths().fall) {
+    toggleElementVisibility("#oktober", true);
     //Select május if október-november is selected and 2023
-    (<HTMLInputElement>document.querySelector("#period")).value = "majus";
-    period = "majus";
-    generatedPeriod = "tavasz";
-  } else if (convertedYear == 2024) {
-    (<HTMLInputElement>document.querySelector("#oktober")).classList.add("hidden");
+    if (period == "oktober") {
+      (<HTMLInputElement>document.querySelector("#period")).value = "majus";
+      period = "majus";
+      generatedPeriod = "tavasz";
+    }
   } else {
-    (<HTMLInputElement>document.querySelector("#oktober")).classList.remove("hidden");
+    toggleElementVisibility("#oktober", false);
   }
-
-  //Hide ágazati informatika if below 2017 using .hidden class
-  if (convertedYear < 2017 && subject == "infoism") {
-    //Select another subject if ágazati informatika is selected and below 2017
-    (<HTMLInputElement>document.querySelector("#subject")).value = "inf";
-    (<HTMLInputElement>document.querySelector("#infoism")).classList.add("hidden");
-    subject = "inf";
-    generatedSubject = "inf";
-  } else if (convertedYear < 2017) {
-    (<HTMLInputElement>document.querySelector("#infoism")).classList.add("hidden");
-  } else {
-    (<HTMLInputElement>document.querySelector("#infoism")).classList.remove("hidden");
+  // Ágazati informatika didn't exist before 2017
+  if (convertedYear < 2017) {
+    toggleElementVisibility("#infoism", true);
+    ({ subject, generatedSubject} = switchSubjectWhenDisabled("infoism", "inf", subject, generatedSubject));
+  }
+  else {
+    toggleElementVisibility("#infoism", false);
+  }
+  // Digitális kultúra didn't exist before 2022, after 2023 közismereti informatika was removed
+  if (convertedYear < 2022) {
+    toggleElementVisibility("#digkult", true);
+    ({ subject, generatedSubject} = switchSubjectWhenDisabled("digkult", "inf", subject, generatedSubject));
+  }
+  else {
+    toggleElementVisibility("#digkult", false);
+  }
+  // After 2023, közismereti informatika no longer exists
+  if (convertedYear > 2023) {
+    toggleElementVisibility("#inf", true);
+    ({ subject, generatedSubject} = switchSubjectWhenDisabled("inf", "digkult", subject, generatedSubject));
+  }
+  else {
+    toggleElementVisibility("#inf", false);
   }
 
   if (subject == "inf" && convertedYear <= 2011 && !(convertedYear == 2011 && period == "oktober")) {
@@ -70,7 +98,7 @@ function formUpdate() {
   else {
     generatedSubject = subject;
   }
-
+  
   let linkPrefix: string = "https://www.oktatas.hu/bin/content/dload/erettsegi/feladatok";
 
   switch (pressedButton) {
@@ -124,7 +152,6 @@ function formUpdate() {
   }
 
   generatedLink = linkPrefix + assembledPart;
-
   (<HTMLInputElement>document.querySelector("#output")).value = generatedLink;
 }
 
@@ -145,3 +172,36 @@ buttons.forEach((btn) => {
     window.open(generatedLink, "_blank");
   });
 });
+
+function toggleElementVisibility(element: string, hide: boolean): void {
+  if (hide == true) {
+    (<HTMLInputElement>document.querySelector(element)).classList.add("hidden");
+  } else {
+    (<HTMLInputElement>document.querySelector(element)).classList.remove("hidden");
+  }
+}
+
+function switchSubjectWhenDisabled(subjectToCheck: string, subjectToSwitchTo: string, subject: string, generatedSubject: string): { subject: string; generatedSubject: string } {
+  if (subject == subjectToCheck) {
+    (<HTMLInputElement>document.querySelector("#subject")).value = subjectToSwitchTo;
+    subject = subjectToSwitchTo;
+    generatedSubject = subjectToSwitchTo;
+  }
+  return { subject, generatedSubject };
+}
+
+function checkAvailableMonths(): { spring: boolean, fall: boolean } {
+  let currentMonth = dateTime.getUTCMonth();
+
+  let spring = false;
+  if (currentMonth > 5) {
+    spring = true;
+  }
+
+  let fall = false;
+  if (currentMonth > 10) {
+    fall = true;
+  }
+
+  return { spring, fall };
+}
