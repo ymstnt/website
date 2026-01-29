@@ -9,33 +9,31 @@ async function updateCounter() {
     currentWeek = await getCurrentWeek("hu");
   }
 
+  if (currentWeek > 0 && currentWeek <= 14) {
+    if (lang == "hu")  {
+      currentWeek = currentWeek + " hét"
+    } else {
+      currentWeek = currentWeek + " week"
+    }
+  }
+
   displayElement.innerHTML = currentWeek;
 }
 
 async function getCurrentWeek(
   lang = "en",
-  numberOnly = false,
-  daysLeftBreak = true,
-  daysLeftExams = true,
-  appendWeek = true
+  verbose = true,
+  countdown = true
 ) {
   const url = new URL("https://uwc.ymstnt.com/uwc");
 
   url.searchParams.append("lang", lang);
   // Only append the parameters if they are true
-  if (daysLeftBreak) {
-    url.searchParams.append("days-left-break", "");
+  if (verbose) {
+    url.searchParams.append("verbose", "");
   }
-  if (daysLeftExams) {
-    url.searchParams.append("days-left-exam", "");
-  }
-
-  if (numberOnly) {
-    url.searchParams.append("number-only", "");
-  }
-
-  if (appendWeek) {
-    url.searchParams.append("append-week", "");
+  if (countdown) {
+    url.searchParams.append("countdown", "");
   }
 
   const response = await fetch(url, {
