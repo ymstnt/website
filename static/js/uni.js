@@ -3,45 +3,40 @@ const lang = document.documentElement.lang;
 async function updateCounter() {
   displayElement = document.querySelector("#week-number");
 
-  let currentWeek = await getCurrentWeek();
-  console.log(currentWeek);
-  if (lang == "hu") {
-    currentWeek = await getCurrentWeek("hu");
-  }
+  let { week, suffix, verbose, exam, study, regWeek } = await getCurrentWeek(lang);
 
-  if (currentWeek > 0 && currentWeek <= 14) {
+  if (study && !regWeek) {
     if (lang == "hu")  {
-      currentWeek = currentWeek + " hét"
+      week = week + suffix + " hét"
     } else {
-      currentWeek = currentWeek + " week"
+      week = week + suffix + " week"
+    }
+  } else if (regWeek) {
+    week = verbose;
+  } else {
+    if (lang == "hu") {
+      week = verbose + " (" + week + " nap van hátra)";
+    } else {
+      week = verbose + " (" + week + " days left)";
     }
   }
 
-  displayElement.innerHTML = currentWeek;
+  displayElement.innerHTML = week;
 }
 
 async function getCurrentWeek(
-  lang = "en",
-  verbose = true,
-  countdown = true
+  lang = "en"
 ) {
-  const url = new URL("https://uwc.ymstnt.com/uwc");
+  const url = new URL("https://api.ymstnt.com/uwc");
 
   url.searchParams.append("lang", lang);
-  // Only append the parameters if they are true
-  if (verbose) {
-    url.searchParams.append("verbose", "");
-  }
-  if (countdown) {
-    url.searchParams.append("countdown", "");
-  }
 
   const response = await fetch(url, {
     method: "GET",
   });
 
   const result = await response.json();
-  return result.message;
+  return { week: result.week, suffix: result.suffix, verbose: result.verbose, exam: result.exam, study: result.study, regWeek: result.regWeek };
 }
 
 updateCounter();
