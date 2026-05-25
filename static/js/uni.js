@@ -1,9 +1,10 @@
 const lang = document.documentElement.lang;
 
-async function updateCounter() {
-  displayElement = document.querySelector("#week-number");
+async function updateCounter(examsDone = false) {
+  weekElement = document.querySelector("#week-number");
+  daysLeftElement = document.querySelector("#days-left");
 
-  let { week, suffix, verbose, exam, study, regWeek } = await getCurrentWeek(lang);
+  let { week, suffix, verbose, daysLeft, exam, study, regWeek } = await getCurrentWeek(lang, examsDone);
 
   if (study && !regWeek) {
     if (lang == "hu")  {
@@ -11,32 +12,49 @@ async function updateCounter() {
     } else {
       week = week + suffix + " week"
     }
-  } else if (regWeek) {
-    week = verbose;
   } else {
-    if (lang == "hu") {
-      week = verbose + " (" + week + " nap van hátra)";
-    } else {
-      week = verbose + " (" + week + " days left)";
-    }
+    week = verbose;
+  }
+ 
+  if (lang == "hu") {
+    daysLeft = " (" + daysLeft + " nap van hátra)";
+  } else {
+    daysLeft = " (" + daysLeft + " days left)";
   }
 
-  displayElement.innerHTML = week;
+  weekElement.innerHTML = week;
+  daysLeftElement.innerHTML = daysLeft;
 }
 
 async function getCurrentWeek(
-  lang = "en"
+  lang = "en",
+  examsDone = false
 ) {
   const url = new URL("https://api.ymstnt.com/uwc");
 
   url.searchParams.append("lang", lang);
+  if (examsDone) {
+    url.searchParams.append("countdown-breaks", '');
+  }
 
   const response = await fetch(url, {
     method: "GET",
   });
 
   const result = await response.json();
-  return { week: result.week, suffix: result.suffix, verbose: result.verbose, exam: result.exam, study: result.study, regWeek: result.regWeek };
+  return { week: result.week, suffix: result.suffix, verbose: result.verbose, daysLeft: result.daysLeft, exam: result.exam, study: result.study, regWeek: result.regWeek };
 }
 
-updateCounter();
+const examsDoneCheckbox = document.querySelector("#exams-done")
+examsDoneCheckbox.checked = localStorage.getItem("checkboxState") === "true";
+
+updateCounter(examsDoneCheckbox.checked);
+
+examsDoneCheckbox.addEventListener('change', (event) => {
+  localStorage.setItem("checkboxState", event.target.checked);
+  if (event.target.checked) {
+    updateCounter(true);
+  } else {
+    updateCounter(false);
+  }
+});
