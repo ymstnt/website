@@ -1,10 +1,18 @@
 const lang = document.documentElement.lang;
 
+const examsDoneCheckbox = document.querySelector("#exams-done")
+examsDoneCheckbox.checked = localStorage.getItem("checkboxState") === "true";
+
 async function updateCounter(examsDone = false) {
   weekElement = document.querySelector("#week-number");
   daysLeftElement = document.querySelector("#days-left");
 
   let { week, suffix, verbose, daysLeft, exam, study, regWeek } = await getCurrentWeek(lang, examsDone);
+
+  if (exam) {
+    examsDoneCheckbox.style.visibility = "visible";
+    document.querySelector("#exams-done-label").style.visibility = "visible";
+  }
 
   if (study && !regWeek) {
     if (lang == "hu")  {
@@ -44,9 +52,6 @@ async function getCurrentWeek(
   const result = await response.json();
   return { week: result.week, suffix: result.suffix, verbose: result.verbose, daysLeft: result.daysLeft, exam: result.exam, study: result.study, regWeek: result.regWeek };
 }
-
-const examsDoneCheckbox = document.querySelector("#exams-done")
-examsDoneCheckbox.checked = localStorage.getItem("checkboxState") === "true";
 
 updateCounter(examsDoneCheckbox.checked);
 
